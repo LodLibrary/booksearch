@@ -61,13 +61,44 @@ function buildFormData(query: string, column: SearchColumn, tokenName?: string):
   return body;
 }
 
+function isNoiseText(text: string): boolean {
+  const cleaned = text.replace(/\s+/g, " ").trim();
+  if (!cleaned) return true;
+
+  const noisePatterns = [
+    /דף הבית|אירועים|אודות|צרו קשר|כניסה|שכחתי סיסמא|סיום|הבא|SCROLL_TO_TOP/i,
+    /הספרייה העירונית|הודעות לקוראים|חדשות הספרייה|סדנאות|פעילויות|תמונות וסרטונים/i,
+    /פרטים נוספים$/i,
+  ];
+
+  return noisePatterns.some((pattern) => pattern.test(cleaned));
+}
+
+function looksLikeCatalogLink(href?: string, text?: string): boolean {
+  const h = (href || "").toLowerCase();
+  const t = (text || "").trim();
+
+  if (!h && !t) return false;
+  if (isNoiseText(t)) return false;
+
+  // TODO: Tighten patterns if Agron exposes stable item URLs.
+  const positiveHref = /agron|itemid=72|view=results|option=com_agronsearch|tmpl=component|task=|record|book|details/i.test(h);
+  const negativeHref = /login|contact|home|events|about|gallery|video|images|newsletter|mailto:|javascript:/i.test(h);
+
+  if (negativeHref) return false;
+  if (positiveHref) return true;
+
+  // Fallback: long Hebrew/English title-like anchors are often records.
+  return t.length >= 4 && t.length <= 140;
+}
+
 function parseResultCards(html: string): CatalogResult[] {
   const $ = cheerio.load(html);
   const results: CatalogResult[] = [];
 
   // TODO: Agron markup may change. Adjust selectors below if cards/rows stop being discovered.
   const candidateRows = $(
-    ".agron_result, .result, .results .row, table tr, .items-row, .item, .search-result"
+    ".agron_result, .result, .results .row, table tr, .items-row, .item, .search-result, .result-row"
   );
 
   const rows = candidateRows.length > 0 ? candidateRows : $("a").closest("div, tr, li");
@@ -77,29 +108,37 @@ function parseResultCards(html: string): CatalogResult[] {
     const allLinks = rowEl.find("a");
     if (!allLinks.length) return;
 
-    const titleLink =
-      allLinks
-        .toArray()
-        .map((a) => $(a))
-        .find((a) => (a.text() || "").trim().length > 2) || allLinks.first();
+    const recordLinks = allLinks
+      .toArray()
+      .map((a) => $(a))
+      .filter((a) => looksLikeCatalogLink(a.attr("href"), a.text()));
 
-    const title = (titleLink.text() || "").trim();
-    if (!title) return;
+    if (!recordLinks.length) return;
 
-    const rawText = rowEl.text().replace(/\s+/g, " ").trim();
+    const titleLink = recordLinks.find((a) => !/פרטים נוספים/i.test(a.text())) || recordLinks[0];
+    const title = (titleLink.text() || "").replace(/\s+/g, " ").trim();
 
-    const detailsHref = titleLink.attr("href") || allLinks.first().attr("href");
+    if (!title || isNoiseText(title) || title.length < 2) return;
+
+    let rawText = rowEl.text().replace(/\s+/g, " ").trim();
+
+    // Remove common navigation/site chrome fragments from extracted text.
+    rawText = rawText
+      .replace(/(?:דף הבית|אירועים|אודות|צרו קשר|כניסה|שכחתי סיסמא|SCROLL_TO_TOP|הבא|סיום)/gi, " ")
+      .replace(/(?:הספרייה העירונית\s*"?לדורות"?\s*לוד|תמונות וסרטונים|חדשות הספרייה|הודעות לקוראים)/gi, " ")
+      .replace(/(?:פרטים נוספים\s*){1,}/gi, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    const detailsHref = titleLink.attr("href") || recordLinks[0].attr("href");
     const copiesHref =
-      allLinks
-        .toArray()
-        .map((a) => $(a))
-        .find((a) => /עותקים|copies|copy|השאלה/i.test(a.text()) || /copy/i.test(a.attr("href") || ""))
+      recordLinks.find((a) => /עותקים|copies|copy|השאלה/i.test(a.text()) || /copy|loan|holding/i.test(a.attr("href") || ""))
         ?.attr("href") || undefined;
 
-    const authorMatch = rawText.match(/(?:מחבר|Author)\s*[:\-]?\s*([^|,.;]{2,60})/i);
+    const authorMatch = rawText.match(/(?:מחבר|Author)\s*[:\-]?\s*([^|,.;]{2,90})/i);
     const yearMatch = rawText.match(/(?:19|20)\d{2}/);
-    const shelfMatch = rawText.match(/(?:מדף|מיקום|Shelf(?:\s*Mark)?)\s*[:\-]?\s*([^|,.;]{1,50})/i);
-    const classMatch = rawText.match(/(?:סיווג|Classification)\s*[:\-]?\s*([^|,.;]{1,50})/i);
+    const shelfMatch = rawText.match(/(?:מדף|מיקום|Shelf(?:\s*Mark)?)\s*[:\-]?\s*([^|,.;]{1,70})/i);
+    const classMatch = rawText.match(/(?:סיווג|Classification)\s*[:\-]?\s*([^|,.;]{1,70})/i);
 
     results.push({
       title,
