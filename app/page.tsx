@@ -83,6 +83,9 @@ export default function HomePage() {
       </section>
 
       <section className="results" aria-live="polite">
+        {!loading && searched && !error && visibleResults.length > 0 && (
+          <p className="resultsCount">נמצאו {visibleResults.length} תוצאות עם עותקים זמינים</p>
+        )}
         {!loading && searched && !error && visibleResults.length === 0 && <p>לא נמצאו תוצאות מתאימות.</p>}
 
         {visibleResults.map((item, idx) => (
