@@ -15,6 +15,8 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searched, setSearched] = useState(false);
+  const [expanded, setExpanded] = useState<Record<string, { mode: "details" | "copies"; lines: string[] }>>({});
+  const [panelLoading, setPanelLoading] = useState<string | null>(null);
 
   const canSearch = useMemo(() => query.trim().length >= 2, [query]);
   const visibleResults = useMemo(() => results.filter((item) => Boolean(item.copiesUrl)), [results]);
@@ -44,6 +46,18 @@ export default function HomePage() {
       setResults([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const openPanel = async (key: string, url: string, mode: "details" | "copies") => {
+    setPanelLoading(`${key}-${mode}`);
+    try {
+      const res = await fetch(`/api/details?url=${encodeURIComponent(url)}&mode=${mode}`);
+      const data = (await res.json()) as { lines?: string[]; error?: string };
+      if (!res.ok || !data.lines) return;
+      setExpanded((prev) => ({ ...prev, [key]: { mode, lines: data.lines } }));
+    } finally {
+      setPanelLoading(null);
     }
   };
 
@@ -103,16 +117,34 @@ export default function HomePage() {
                 </ul>
                 <div className="actions">
                   {item.detailsUrl && (
-                    <a href={item.detailsUrl} target="_blank" rel="noreferrer noopener">
+                    <button
+                      type="button"
+                      onClick={() => openPanel(`${item.title}-${idx}`, item.detailsUrl!, "details")}
+                      disabled={panelLoading === `${item.title}-${idx}-details`}
+                    >
                       פרטים נוספים
-                    </a>
+                    </button>
                   )}
                   {item.copiesUrl && (
-                    <a href={item.copiesUrl} target="_blank" rel="noreferrer noopener">
+                    <button
+                      type="button"
+                      onClick={() => openPanel(`${item.title}-${idx}`, item.copiesUrl!, "copies")}
+                      disabled={panelLoading === `${item.title}-${idx}-copies`}
+                    >
                       בדיקת עותקים
-                    </a>
+                    </button>
                   )}
                 </div>
+                {expanded[`${item.title}-${idx}`] && (
+                  <div className="detailsPanel">
+                    <h3>{expanded[`${item.title}-${idx}`].mode === "copies" ? "פרטי עותקים" : "פרטי רשומה"}</h3>
+                    <ul>
+                      {expanded[`${item.title}-${idx}`].lines.map((line, i) => (
+                        <li key={`${i}-${line}`}>{line}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
 
               <div className="coverWrap" aria-hidden="true">

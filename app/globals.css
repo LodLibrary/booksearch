@@ -38,7 +38,8 @@ body {
 .searchForm input,
 .searchForm select,
 .searchForm button,
-.actions a {
+.actions a,
+.actions button {
   border-radius: 10px;
   border: 1px solid #d2dae6;
   font-size: 1rem;
@@ -163,6 +164,7 @@ body {
 }
 
 .actions a {
+.actions button {
   display: inline-flex;
   align-items: center;
   text-decoration: none;
@@ -171,6 +173,32 @@ body {
   background: #eef4ff;
   border-color: #d7e5ff;
   font-weight: 600;
+  cursor: pointer;
+}
+
+.actions button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.detailsPanel {
+  margin-top: 0.9rem;
+  padding: 0.8rem;
+  border-radius: 10px;
+  background: #f8fbff;
+  border: 1px solid #dbe8ff;
+}
+
+.detailsPanel h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+
+.detailsPanel ul {
+  margin: 0;
+  padding-inline-start: 1rem;
+  display: grid;
+  gap: 0.35rem;
 }
 
 .srOnly {
