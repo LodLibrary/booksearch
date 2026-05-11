@@ -27,6 +27,27 @@ function toAbsoluteUrl(href?: string): string | undefined {
   }
 }
 
+function normalizeImageUrl(src?: string): string | undefined {
+  if (!src) return undefined;
+  const cleaned = src.replace(/\s+/g, "").trim();
+  if (!cleaned) return undefined;
+
+  try {
+    const absolute = new URL(cleaned, AGRON_BASE_URL).toString();
+    const parsed = new URL(absolute);
+    const q = parsed.searchParams.get("q");
+
+    if (q) {
+      const normalizedQ = q.replace(/\s+/g, "");
+      parsed.searchParams.set("q", normalizedQ);
+    }
+
+    return parsed.toString();
+  } catch {
+    return undefined;
+  }
+}
+
 async function getCsrfToken(): Promise<string | null> {
   const response = await fetch(AGRON_SEARCH_URL, {
     cache: "no-store",
@@ -132,7 +153,8 @@ function parseResultCards(html: string): CatalogResult[] {
       .trim();
 
     const detailsHref = titleLink.attr("href") || recordLinks[0].attr("href");
-    const imageSrc = rowEl.find("img").first().attr("src");
+    const imageSrc =
+      rowEl.find('img[id^="image"]').first().attr("src") || rowEl.find("img").first().attr("src");
     const copiesHref =
       recordLinks.find((a) => /עותקים|copies|copy|השאלה/i.test(a.text()) || /copy|loan|holding/i.test(a.attr("href") || ""))
         ?.attr("href") || undefined;
@@ -150,7 +172,7 @@ function parseResultCards(html: string): CatalogResult[] {
       classification: classMatch?.[1]?.trim(),
       detailsUrl: toAbsoluteUrl(detailsHref),
       copiesUrl: toAbsoluteUrl(copiesHref),
-      coverUrl: toAbsoluteUrl(imageSrc),
+      coverUrl: normalizeImageUrl(imageSrc),
       rawText,
     });
   });
