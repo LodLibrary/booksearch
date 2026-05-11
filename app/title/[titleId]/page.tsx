@@ -7,6 +7,7 @@ type Payload = {
   title: string;
   image?: string;
   fields: Array<{ label: string; value: string }>;
+  description?: string;
   copies: string[];
   detailsUrl: string;
   error?: string;
@@ -44,6 +45,12 @@ export default function TitleDetailsPage({ params }: { params: { titleId: string
                 {data.fields.map((f, i) => <li key={`${f.label}-${i}`}><strong>{f.label}:</strong> {f.value}</li>)}
               </ul>
             </div>
+            {data.description && (
+              <div className="detailsPanel">
+                <h3>תיאור</h3>
+                <p>{data.description}</p>
+              </div>
+            )}
             {data.copies.length > 0 && (
               <div className="detailsPanel">
                 <h3>פרטי עותקים</h3>

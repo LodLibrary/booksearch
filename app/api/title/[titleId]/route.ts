@@ -60,6 +60,14 @@ export async function GET(_: NextRequest, { params }: { params: { titleId: strin
         if (m) pushField(m[1], m[2]);
       });
 
+    let description = "";
+    const descriptionNode = $(".summary, .description, .abstract, .item-introtext, .notes, .title-details")
+      .filter((_, el) => /תיאור|תקציר|תוכן|Summary|Description/i.test($(el).text()))
+      .first();
+    if (descriptionNode.length) {
+      description = descriptionNode.text().replace(/\s+/g, " ").trim();
+    }
+
     const copies: string[] = [];
     $("#copies tr, .copies tr, table tr").each((_, tr) => {
       const cells = $(tr)
@@ -71,7 +79,7 @@ export async function GET(_: NextRequest, { params }: { params: { titleId: strin
       if (t && !/SCROLL_TO_TOP|פרטים נוספים/i.test(t)) copies.push(t);
     });
 
-    return NextResponse.json({ title: title || "פרטי כותר", image, fields, copies, detailsUrl });
+    return NextResponse.json({ title: title || "פרטי כותר", image, fields, description, copies, detailsUrl });
   } catch {
     return NextResponse.json({ error: "אירעה שגיאה זמנית בטעינת העמוד." }, { status: 502 });
   }
