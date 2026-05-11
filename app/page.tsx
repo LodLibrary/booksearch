@@ -112,7 +112,7 @@ export default function HomePage() {
 
               <div className="coverWrap" aria-hidden="true">
                 {item.coverUrl ? (
-                  <img src={item.coverUrl} alt="" className="coverImage" loading="lazy" />
+                  <img src={`/api/cover?url=${encodeURIComponent(item.coverUrl)}`} alt="" className="coverImage" loading="lazy" />
                 ) : (
                   <div className="coverFallback">אין תמונה</div>
                 )}
