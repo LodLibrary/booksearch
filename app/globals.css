@@ -23,6 +23,24 @@ body {
   aspect-ratio: 16 / 9;
 }
 
+.kiosk {
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  gap: 1rem;
+}
+
+.topBar {
+  border: 1px solid var(--line);
+  padding: 1rem 1.2rem;
+  background: #fff;
+}
+
+.eyebrow {
+  margin: 0 0 0.2rem;
+  color: #4a5f8a;
+  font-size: 0.92rem;
+}
+
 .hero h1 {
   font-size: clamp(1.8rem, 4vw, 2.8rem);
   margin-bottom: 1.2rem;
@@ -83,6 +101,23 @@ body {
   margin-top: 1.5rem;
   display: grid;
   gap: 1rem;
+  margin-top: 0;
+  max-height: 58vh;
+  overflow: auto;
+  padding-inline-end: 0.2rem;
+}
+
+.resultsBoard {
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 0.8rem;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.resultsHeader {
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.5rem;
 }
 
 .resultsCount {
@@ -108,7 +143,8 @@ body {
 .card h2 {
   margin-top: 0;
   margin-bottom: 0.6rem;
-  font-size: 1.2rem;
+  font-size: 1.24rem;
+  color: #18356d;
 }
 
 .card ul {
@@ -179,6 +215,7 @@ body {
   border-color: var(--primary);
   font-weight: 600;
   cursor: pointer;
+  min-height: 40px;
 }
 
 .actions button:disabled {
@@ -254,6 +291,10 @@ body {
 @media (max-width: 720px) {
   .searchForm {
     grid-template-columns: 1fr;
+  }
+
+  .results {
+    max-height: unset;
   }
 }
 

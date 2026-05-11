@@ -74,9 +74,15 @@ export default function HomePage() {
   };
 
   return (
-    <main className="container">
+    <main className="container kiosk">
+      <header className="topBar">
+        <div>
+          <p className="eyebrow">הספרייה העירונית לוד</p>
+          <h1>חיפוש בקטלוג הספרייה</h1>
+        </div>
+      </header>
+
       <section className="hero">
-        <h1>חיפוש בקטלוג הספרייה</h1>
         <form className="searchForm" onSubmit={onSubmit} aria-label="טופס חיפוש">
           <label htmlFor="query" className="srOnly">
             טקסט לחיפוש
@@ -109,12 +115,15 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="results" aria-live="polite">
+      <section className="resultsBoard" aria-live="polite">
+        <div className="resultsHeader">
         {!loading && searched && !error && visibleResults.length > 0 && (
           <p className="resultsCount">נמצאו {visibleResults.length} תוצאות</p>
         )}
         {!loading && searched && !error && visibleResults.length === 0 && <p>לא נמצאו תוצאות מתאימות.</p>}
+        </div>
 
+        <div className="results">
         {visibleResults.map((item, idx) => (
           <article key={`${item.title}-${idx}`} className="card">
             <div className="cardLayout">
@@ -180,6 +189,7 @@ export default function HomePage() {
             </div>
           </article>
         ))}
+        </div>
       </section>
     </main>
   );
