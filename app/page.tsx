@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
+import Image from "next/image";
 import type { CatalogResult, SearchColumn } from "../lib/agron";
 
 type SearchResponse =
@@ -98,7 +99,7 @@ export default function HomePage() {
                   {item.year && <li>שנת הוצאה: {item.year}</li>}
                   {item.shelfMark && <li>מיקום מדף: {item.shelfMark}</li>}
                   {item.classification && <li>סיווג: {item.classification}</li>}
-                  {item.seriesNumber && <li>מס' בסדרה: {item.seriesNumber}</li>}
+                  {item.seriesNumber && <li>מס׳ בסדרה: {item.seriesNumber}</li>}
                 </ul>
                 <div className="actions">
                   {item.detailsUrl && (
@@ -116,7 +117,14 @@ export default function HomePage() {
 
               <div className="coverWrap" aria-hidden="true">
                 {item.coverUrl ? (
-                  <img src={`/api/cover?url=${encodeURIComponent(item.coverUrl)}`} alt="" className="coverImage" loading="lazy" />
+                  <Image
+                    src={`/api/cover?url=${encodeURIComponent(item.coverUrl)}`}
+                    alt=""
+                    className="coverImage"
+                    width={110}
+                    height={150}
+                    unoptimized
+                  />
                 ) : (
                   <div className="coverFallback">אין תמונה</div>
                 )}
