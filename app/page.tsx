@@ -136,13 +136,16 @@ export default function HomePage() {
           <article key={`${item.title}-${idx}`} className="card">
             <div className="cardLayout">
               <div className="cardText">
-                <h2>{item.title}</h2>
-                <div className="metaGrid">
-                  {item.author && <div className="metaItem"><span>מחבר/ת</span><strong>{item.author}</strong></div>}
-                  {item.year && <div className="metaItem"><span>שנת הוצאה</span><strong>{item.year}</strong></div>}
-                  {item.shelfMark && <div className="metaItem"><span>מיקום מדף</span><strong>{item.shelfMark}</strong></div>}
-                  {item.classification && <div className="metaItem"><span>סיווג</span><strong>{item.classification}</strong></div>}
-                  {item.seriesNumber && <div className="metaItem"><span>מס׳ בסדרה</span><strong>{item.seriesNumber}</strong></div>}
+                <h2 className="bookTitle">{item.title}</h2>
+                <div className="bookSubline">
+                  {item.author && <p className="bookAuthor">מאת {item.author}</p>}
+                  {item.year && <p className="bookYear">{item.year}</p>}
+                </div>
+
+                <div className="metaTags">
+                  {item.shelfMark && <span className="tag">מיקום מדף: {item.shelfMark}</span>}
+                  {item.classification && <span className="tag">סיווג: {item.classification}</span>}
+                  {item.seriesNumber && <span className="tag">מס׳ בסדרה: {item.seriesNumber}</span>}
                 </div>
                 <div className="actions">
                   {item.detailsUrl && (
