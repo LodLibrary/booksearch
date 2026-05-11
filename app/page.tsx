@@ -16,6 +16,7 @@ export default function HomePage() {
   const [searched, setSearched] = useState(false);
 
   const canSearch = useMemo(() => query.trim().length >= 2, [query]);
+  const visibleResults = useMemo(() => results.filter((item) => Boolean(item.copiesUrl)), [results]);
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -82,9 +83,9 @@ export default function HomePage() {
       </section>
 
       <section className="results" aria-live="polite">
-        {!loading && searched && !error && results.length === 0 && <p>לא נמצאו תוצאות מתאימות.</p>}
+        {!loading && searched && !error && visibleResults.length === 0 && <p>לא נמצאו תוצאות מתאימות.</p>}
 
-        {results.map((item, idx) => (
+        {visibleResults.map((item, idx) => (
           <article key={`${item.title}-${idx}`} className="card">
             <h2>{item.title}</h2>
             <ul>
