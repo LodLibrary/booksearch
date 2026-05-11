@@ -22,6 +22,15 @@ function cleanFieldValue(value?: string): string | undefined {
   return normalized;
 }
 
+function normalizeShelfMark(value?: string): string | undefined {
+  const cleaned = cleanFieldValue(value);
+  if (!cleaned) return undefined;
+
+  // Shelf mark is expected to be 1-3 letters.
+  const match = cleaned.match(/[A-Za-zא-ת]{1,3}/);
+  return match?.[0];
+}
+
 const AGRON_SEARCH_URL =
   "https://lod.library.org.il/index.php?option=com_agronsearch&view=results&Itemid=72";
 const AGRON_BASE_URL = "https://lod.library.org.il";
@@ -160,7 +169,7 @@ function parseResultCards(html: string): CatalogResult[] {
         title,
         author: cleanFieldValue(authorMatch?.[1]),
         year: yearMatch?.[0],
-        shelfMark: cleanFieldValue(shelfMatch?.[1]),
+        shelfMark: normalizeShelfMark(shelfMatch?.[1]),
         classification: cleanFieldValue(classMatch?.[1]),
         seriesNumber: cleanFieldValue(seriesMatch?.[1]),
         detailsUrl: toAbsoluteUrl(detailsHref),
@@ -237,7 +246,7 @@ function parseResultCards(html: string): CatalogResult[] {
       title,
       author: cleanFieldValue(authorMatch?.[1]),
       year: yearMatch?.[0],
-      shelfMark: cleanFieldValue(shelfMatch?.[1]),
+      shelfMark: normalizeShelfMark(shelfMatch?.[1]),
       classification: cleanFieldValue(classMatch?.[1]),
       seriesNumber: cleanFieldValue(seriesMatch?.[1]),
       detailsUrl: toAbsoluteUrl(detailsHref),
