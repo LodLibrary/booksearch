@@ -54,8 +54,9 @@ export default function HomePage() {
     try {
       const res = await fetch(`/api/details?url=${encodeURIComponent(url)}&mode=${mode}`);
       const data = (await res.json()) as { lines?: string[]; error?: string };
-      if (!res.ok || !data.lines) return;
-      setExpanded((prev) => ({ ...prev, [key]: { mode, lines: data.lines } }));
+      if (!res.ok) return;
+      const lines = data.lines ?? [];
+      setExpanded((prev) => ({ ...prev, [key]: { mode, lines } }));
     } finally {
       setPanelLoading(null);
     }
