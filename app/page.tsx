@@ -25,22 +25,18 @@ export default function HomePage() {
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
     if (!canSearch) return;
-
     setLoading(true);
     setError(null);
     setSearched(true);
 
     try {
-      const url = `/api/search?q=${encodeURIComponent(query.trim())}&column=${column}`;
-      const response = await fetch(url);
+      const response = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}&column=${column}`);
       const data = (await response.json()) as SearchResponse;
-
       if (!response.ok || "error" in data) {
         setResults([]);
         setError(data.error || "אירעה שגיאה זמנית בחיפוש.");
         return;
       }
-
       setResults(data.results);
     } catch {
       setError("החיבור לשרת נכשל. נסו שוב.");
@@ -54,7 +50,7 @@ export default function HomePage() {
     setPanelLoading(`${key}-${mode}`);
     try {
       const res = await fetch(`/api/details?url=${encodeURIComponent(url)}&mode=${mode}`);
-      const data = (await res.json()) as { lines?: string[]; error?: string };
+      const data = (await res.json()) as { lines?: string[] };
       if (!res.ok) return;
       const lines = data.lines ?? [];
       setExpanded((prev) => ({ ...prev, [key]: { mode, lines } }));
@@ -65,36 +61,24 @@ export default function HomePage() {
 
   const getTitleId = (url?: string): string | null => {
     if (!url) return null;
-    try {
-      const u = new URL(url);
-      return u.searchParams.get("titleId");
-    } catch {
-      return null;
-    }
+    try { return new URL(url).searchParams.get("titleId"); } catch { return null; }
   };
 
   const cleanLine = (line: string): string | null => {
     const normalized = line.replace(/\s+/g, " ").trim();
-    if (!normalized) return null;
+    if (!normalized || normalized.length < 3) return null;
     if (/SCROLL_TO_TOP|פרטים נוספים|דף הבית|אירועים|אודות|כניסה|שכחתי סיסמא/i.test(normalized)) return null;
-    if (normalized.length < 3) return null;
     return normalized;
   };
 
   return (
-    <main className="container kiosk">
-      <header className="topBar">
-        <div>
-          <p className="eyebrow">הספרייה העירונית לוד</p>
-          <h1>חיפוש בקטלוג הספרייה</h1>
-        </div>
-      </header>
+    <main className="kioskShell">
+      <section className="heroZone">
+        <p className="kioskBadge">הספרייה העירונית לוד</p>
+        <h1>חיפוש בקטלוג הספרייה</h1>
+        <p className="heroHint">הקלידו שם ספר, מחבר/ת או נושא ולחצו חיפוש</p>
 
-      <section className="hero">
-        <form className="searchForm" onSubmit={onSubmit} aria-label="טופס חיפוש">
-          <label htmlFor="query" className="srOnly">
-            טקסט לחיפוש
-          </label>
+        <form className="heroSearch" onSubmit={onSubmit} aria-label="טופס חיפוש">
           <input
             id="query"
             value={query}
@@ -102,114 +86,73 @@ export default function HomePage() {
             placeholder="שם ספר, מחבר/ת או נושא..."
             autoComplete="off"
           />
-
-          <label htmlFor="column" className="srOnly">
-            סוג חיפוש
-          </label>
-          <select id="column" value={column} onChange={(e) => setColumn(e.target.value as SearchColumn)}>
-            <option value="0">כותר</option>
-            <option value="1">מחבר/ת</option>
-            <option value="2">נושא</option>
-          </select>
-
-          <button type="submit" disabled={!canSearch || loading}>
-            חיפוש
-          </button>
+          <div className="searchControls">
+            <select id="column" value={column} onChange={(e) => setColumn(e.target.value as SearchColumn)}>
+              <option value="0">כותר</option>
+              <option value="1">מחבר/ת</option>
+              <option value="2">נושא</option>
+            </select>
+            <button type="submit" disabled={!canSearch || loading}>חיפוש</button>
+          </div>
         </form>
 
-        <div className="assistive" aria-live="polite">
+        <div className="statusLine" aria-live="polite">
           {loading && <p>מחפש בקטלוג...</p>}
           {error && <p className="error">{error}</p>}
         </div>
       </section>
 
-      <section className="resultsBoard" aria-live="polite">
-        <div className="resultsHeader">
-        {!loading && searched && !error && visibleResults.length > 0 && (
-          <p className="resultsCount">נמצאו {visibleResults.length} תוצאות</p>
-        )}
-        {!loading && searched && !error && visibleResults.length === 0 && <p>לא נמצאו תוצאות מתאימות.</p>}
-        </div>
+      {searched && (
+        <section className="resultsZone" aria-live="polite">
+          <div className="resultsTop">
+            {!loading && !error && visibleResults.length > 0 && <p>נמצאו {visibleResults.length} תוצאות</p>}
+            {!loading && !error && visibleResults.length === 0 && <p>לא נמצאו תוצאות מתאימות.</p>}
+          </div>
 
-        <div className="results">
-        {visibleResults.map((item, idx) => (
-          <article key={`${item.title}-${idx}`} className="card">
-            <div className="cardLayout">
-              <div className="cardText">
-                <h2 className="bookTitle">{item.title}</h2>
-                <div className="bookSubline">
-                  {item.author && <p className="bookAuthor">מאת {item.author}</p>}
-                  {item.year && <p className="bookYear">{item.year}</p>}
-                </div>
+          <div className="resultsGrid">
+            {visibleResults.map((item, idx) => {
+              const key = `${item.title}-${idx}`;
+              const titleId = getTitleId(item.detailsUrl);
+              const details = expanded[key];
+              const sanitized = details ? details.lines.map(cleanLine).filter((line): line is string => Boolean(line)).slice(0, 14) : [];
 
-                <div className="metaTags">
-                  {item.shelfMark && <span className="tag">מיקום מדף: {item.shelfMark}</span>}
-                  {item.classification && <span className="tag">סיווג: {item.classification}</span>}
-                  {item.seriesNumber && <span className="tag">מס׳ בסדרה: {item.seriesNumber}</span>}
-                </div>
-                <div className="actions">
-                  {item.detailsUrl && (
-                    getTitleId(item.detailsUrl) ? (
-                      <Link href={`/title/${getTitleId(item.detailsUrl)}`}>פרטים נוספים</Link>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => openPanel(`${item.title}-${idx}`, item.detailsUrl!, "details")}
-                        disabled={panelLoading === `${item.title}-${idx}-details`}
-                      >
-                        פרטים נוספים
-                      </button>
-                    )
-                  )}
-                  {item.copiesUrl && (
-                    <button
-                      type="button"
-                      onClick={() => openPanel(`${item.title}-${idx}`, item.copiesUrl!, "copies")}
-                      disabled={panelLoading === `${item.title}-${idx}-copies`}
-                    >
-                      בדיקת עותקים
-                    </button>
-                  )}
-                </div>
-                {expanded[`${item.title}-${idx}`] && (
-                  <div className="detailsPanel">
-                    <h3>{expanded[`${item.title}-${idx}`].mode === "copies" ? "פרטי עותקים" : "פרטי רשומה"}</h3>
-                    {(() => {
-                      const sanitized = expanded[`${item.title}-${idx}`].lines
-                        .map(cleanLine)
-                        .filter((line): line is string => Boolean(line))
-                        .slice(0, 14);
-                      return (
-                    <div className="detailsBlocks">
-                      {sanitized.map((line, i) => (
-                        <div className="detailsLine" key={`${i}-${line}`}>{line}</div>
-                      ))}
+              return (
+                <article key={key} className="bookCard">
+                  <div className="bookCardMain">
+                    <h2>{item.title}</h2>
+                    <div className="bookByline">
+                      {item.author && <span>מאת {item.author}</span>}
+                      {item.year && <span className="yearChip">{item.year}</span>}
                     </div>
-                      );
-                    })()}
-                  </div>
-                )}
-              </div>
+                    <div className="chips">
+                      {item.shelfMark && <span>מיקום מדף: {item.shelfMark}</span>}
+                      {item.classification && <span>סיווג: {item.classification}</span>}
+                      {item.seriesNumber && <span>מס׳ בסדרה: {item.seriesNumber}</span>}
+                    </div>
 
-              <div className="coverWrap" aria-hidden="true">
-                {item.coverUrl ? (
-                  <Image
-                    src={`/api/cover?url=${encodeURIComponent(item.coverUrl)}`}
-                    alt=""
-                    className="coverImage"
-                    width={110}
-                    height={150}
-                    unoptimized
-                  />
-                ) : (
-                  <div className="coverFallback">אין תמונה</div>
-                )}
-              </div>
-            </div>
-          </article>
-        ))}
-        </div>
-      </section>
+                    <div className="cardActions">
+                      {item.detailsUrl && (titleId ? <Link href={`/title/${titleId}`}>פרטים נוספים</Link> :
+                        <button type="button" onClick={() => openPanel(key, item.detailsUrl!, "details")} disabled={panelLoading === `${key}-details`}>פרטים נוספים</button>)}
+                      {item.copiesUrl && <button type="button" onClick={() => openPanel(key, item.copiesUrl!, "copies")} disabled={panelLoading === `${key}-copies`}>בדיקת עותקים</button>}
+                    </div>
+
+                    {details && (
+                      <div className="detailsBox">
+                        <h3>{details.mode === "copies" ? "פרטי עותקים" : "פרטי רשומה"}</h3>
+                        <div className="detailsFlow">{sanitized.map((line, i) => <div key={`${i}-${line}`}>{line}</div>)}</div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="bookCover" aria-hidden="true">
+                    {item.coverUrl ? <Image src={`/api/cover?url=${encodeURIComponent(item.coverUrl)}`} alt="" width={150} height={210} unoptimized /> : <div>אין תמונה</div>}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      )}
     </main>
   );
 }
