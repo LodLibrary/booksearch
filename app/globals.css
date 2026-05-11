@@ -163,7 +163,7 @@ body {
   flex-wrap: wrap;
 }
 
-.actions a {
+.actions a,
 .actions button {
   display: inline-flex;
   align-items: center;
