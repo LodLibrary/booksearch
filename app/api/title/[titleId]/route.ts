@@ -27,18 +27,48 @@ export async function GET(_: NextRequest, { params }: { params: { titleId: strin
     const title = $("h1, h2, .title h3, .title-details h3").first().text().replace(/\s+/g, " ").trim();
     const image = normalize($('img[id^="image"]').first().attr("src") || $(".images img").first().attr("src"));
 
-    const fields: Array<{label:string; value:string}> = [];
-    $(".title-details, .record, .details, .content").first().find("br").replaceWith("\n");
-    const block = $(".title-details, .record, .details, .content").first().text();
-    block.split("\n").map((x)=>x.replace(/\s+/g," ").trim()).filter(Boolean).forEach((line)=>{
-      const m = line.match(/^([^:]{2,30})\s*:\s*(.+)$/);
-      if (m) fields.push({label:m[1], value:m[2]});
+    const fields: Array<{ label: string; value: string }> = [];
+    const pushField = (label: string, value: string) => {
+      const l = label.replace(/\s+/g, " ").trim();
+      const v = value.replace(/\s+/g, " ").trim();
+      if (!l || !v) return;
+      if (!fields.find((f) => f.label === l && f.value === v)) fields.push({ label: l, value: v });
+    };
+
+    // 1) Parse semantic label/value rows if they exist.
+    $("dt, .field-label, th").each((_, el) => {
+      const label = $(el).text().replace(/:$/, "").trim();
+      const value =
+        $(el).next("dd").text().trim() ||
+        $(el).closest("tr").find("td").last().text().trim() ||
+        $(el).parent().find(".field-value").first().text().trim();
+      if (label && value) pushField(label, value);
     });
 
+    // 2) Parse free text blocks with line-based "Label: Value".
+    $(".title-details, .record, .details, .content, .item-page").find("br").replaceWith("\n");
+    const blockText = $(".title-details, .record, .details, .content, .item-page")
+      .map((_, el) => $(el).text())
+      .get()
+      .join("\n");
+    blockText
+      .split("\n")
+      .map((x) => x.replace(/\s+/g, " ").trim())
+      .filter(Boolean)
+      .forEach((line) => {
+        const m = line.match(/^([^:]{2,40})\s*:\s*(.+)$/);
+        if (m) pushField(m[1], m[2]);
+      });
+
     const copies: string[] = [];
-    $("#copies tr, .copies tr").each((_, tr) => {
-      const t = $(tr).text().replace(/\s+/g, " ").trim();
-      if (t) copies.push(t);
+    $("#copies tr, .copies tr, table tr").each((_, tr) => {
+      const cells = $(tr)
+        .find("th,td")
+        .map((__, c) => $(c).text().replace(/\s+/g, " ").trim())
+        .get()
+        .filter(Boolean);
+      const t = cells.length > 0 ? cells.join(" | ") : $(tr).text().replace(/\s+/g, " ").trim();
+      if (t && !/SCROLL_TO_TOP|פרטים נוספים/i.test(t)) copies.push(t);
     });
 
     return NextResponse.json({ title: title || "פרטי כותר", image, fields, copies, detailsUrl });
