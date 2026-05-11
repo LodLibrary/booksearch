@@ -69,6 +69,13 @@ export async function GET(_: NextRequest, { params }: { params: { titleId: strin
     }
 
     const copies: string[] = [];
+    const copiesStructured: Array<{
+      status?: string;
+      location?: string;
+      classification?: string;
+      shelfMark?: string;
+      volume?: string;
+    }> = [];
     $("#copies tr, .copies tr, table tr").each((_, tr) => {
       const cells = $(tr)
         .find("th,td")
@@ -77,9 +84,29 @@ export async function GET(_: NextRequest, { params }: { params: { titleId: strin
         .filter(Boolean);
       const t = cells.length > 0 ? cells.join(" | ") : $(tr).text().replace(/\s+/g, " ").trim();
       if (t && !/SCROLL_TO_TOP|פרטים נוספים/i.test(t)) copies.push(t);
+
+      if (cells.length >= 4 && !/מספר|סטטוס|מיקום|ימי השאלה/.test(cells.join(" "))) {
+        copiesStructured.push({
+          status: cells[1],
+          location: cells[2],
+          classification: cells[3],
+          shelfMark: cells[4],
+          volume: cells[5],
+        });
+      }
     });
 
-    return NextResponse.json({ title: title || "פרטי כותר", image, fields, description, copies, detailsUrl });
+    const availableCount = copiesStructured.filter((c) => c.status && !/מושאל|לא זמין|חסר/i.test(c.status)).length;
+    return NextResponse.json({
+      title: title || "פרטי כותר",
+      image,
+      fields,
+      description,
+      copies,
+      copiesStructured,
+      availableCount,
+      detailsUrl,
+    });
   } catch {
     return NextResponse.json({ error: "אירעה שגיאה זמנית בטעינת העמוד." }, { status: 502 });
   }
