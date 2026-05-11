@@ -110,6 +110,29 @@ body {
 .cardLayout { display: grid; grid-template-columns: 1fr 110px; gap: 1rem; align-items: start; }
 .cardText { min-width: 0; }
 .card h2 { margin: 0 0 .6rem; font-size: 1.2rem; color: #1c3f82; }
+.topBar h1 {
+  margin: 0;
+  font-size: clamp(2rem, 3vw, 2.8rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.hero h1 {
+  font-weight: 750;
+  letter-spacing: -0.01em;
+}
+
+.resultsCount {
+  font-size: 1.02rem;
+  font-weight: 700;
+}
+
+.card h2 {
+  font-size: 1.35rem;
+  font-weight: 780;
+  line-height: 1.25;
+  margin-bottom: 0.8rem;
+}
 
 .metaGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; }
 .metaItem {
@@ -121,7 +144,7 @@ body {
   gap: .15rem;
 }
 .metaItem span { font-size: .8rem; color: var(--muted); }
-.metaItem strong { color: #152a55; font-size: .98rem; }
+.metaItem strong { color: #152a55; font-size: 1.06rem; font-weight: 720; }
 
 .coverWrap { width: 110px; }
 .coverImage, .coverFallback {
@@ -146,6 +169,15 @@ body {
 .detailsPanel h3 { margin: 0 0 .45rem; font-size: .97rem; color: #1d3f82; }
 .detailsBlocks { display: grid; gap: .45rem; }
 .detailsLine { border: 1px solid #e0e9fb; border-radius: 10px; padding: .5rem .6rem; background: #fafcff; }
+.detailsPanel h3 {
+  font-size: 1.08rem;
+  font-weight: 760;
+}
+
+.detailsLine {
+  font-size: 0.95rem;
+  color: #273a63;
+}
 
 .srOnly { position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0; }
 

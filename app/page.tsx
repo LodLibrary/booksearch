@@ -73,6 +73,14 @@ export default function HomePage() {
     }
   };
 
+  const cleanLine = (line: string): string | null => {
+    const normalized = line.replace(/\s+/g, " ").trim();
+    if (!normalized) return null;
+    if (/SCROLL_TO_TOP|פרטים נוספים|דף הבית|אירועים|אודות|כניסה|שכחתי סיסמא/i.test(normalized)) return null;
+    if (normalized.length < 3) return null;
+    return normalized;
+  };
+
   return (
     <main className="container kiosk">
       <header className="topBar">
@@ -163,11 +171,19 @@ export default function HomePage() {
                 {expanded[`${item.title}-${idx}`] && (
                   <div className="detailsPanel">
                     <h3>{expanded[`${item.title}-${idx}`].mode === "copies" ? "פרטי עותקים" : "פרטי רשומה"}</h3>
+                    {(() => {
+                      const sanitized = expanded[`${item.title}-${idx}`].lines
+                        .map(cleanLine)
+                        .filter((line): line is string => Boolean(line))
+                        .slice(0, 14);
+                      return (
                     <div className="detailsBlocks">
-                      {expanded[`${item.title}-${idx}`].lines.map((line, i) => (
+                      {sanitized.map((line, i) => (
                         <div className="detailsLine" key={`${i}-${line}`}>{line}</div>
                       ))}
                     </div>
+                      );
+                    })()}
                   </div>
                 )}
               </div>
