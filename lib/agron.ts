@@ -10,6 +10,7 @@ export type CatalogResult = {
   classification?: string;
   detailsUrl?: string;
   copiesUrl?: string;
+  coverUrl?: string;
   rawText?: string;
 };
 
@@ -131,6 +132,7 @@ function parseResultCards(html: string): CatalogResult[] {
       .trim();
 
     const detailsHref = titleLink.attr("href") || recordLinks[0].attr("href");
+    const imageSrc = rowEl.find("img").first().attr("src");
     const copiesHref =
       recordLinks.find((a) => /עותקים|copies|copy|השאלה/i.test(a.text()) || /copy|loan|holding/i.test(a.attr("href") || ""))
         ?.attr("href") || undefined;
@@ -148,6 +150,7 @@ function parseResultCards(html: string): CatalogResult[] {
       classification: classMatch?.[1]?.trim(),
       detailsUrl: toAbsoluteUrl(detailsHref),
       copiesUrl: toAbsoluteUrl(copiesHref),
+      coverUrl: toAbsoluteUrl(imageSrc),
       rawText,
     });
   });

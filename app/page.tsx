@@ -87,24 +87,36 @@ export default function HomePage() {
 
         {visibleResults.map((item, idx) => (
           <article key={`${item.title}-${idx}`} className="card">
-            <h2>{item.title}</h2>
-            <ul>
-              {item.author && <li>מחבר/ת: {item.author}</li>}
-              {item.year && <li>שנת הוצאה: {item.year}</li>}
-              {item.shelfMark && <li>מיקום מדף: {item.shelfMark}</li>}
-              {item.classification && <li>סיווג: {item.classification}</li>}
-            </ul>
-            <div className="actions">
-              {item.detailsUrl && (
-                <a href={item.detailsUrl} target="_blank" rel="noreferrer noopener">
-                  פרטים נוספים
-                </a>
-              )}
-              {item.copiesUrl && (
-                <a href={item.copiesUrl} target="_blank" rel="noreferrer noopener">
-                  בדיקת עותקים
-                </a>
-              )}
+            <div className="cardLayout">
+              <div className="cardText">
+                <h2>{item.title}</h2>
+                <ul>
+                  {item.author && <li>מחבר/ת: {item.author}</li>}
+                  {item.year && <li>שנת הוצאה: {item.year}</li>}
+                  {item.shelfMark && <li>מיקום מדף: {item.shelfMark}</li>}
+                  {item.classification && <li>סיווג: {item.classification}</li>}
+                </ul>
+                <div className="actions">
+                  {item.detailsUrl && (
+                    <a href={item.detailsUrl} target="_blank" rel="noreferrer noopener">
+                      פרטים נוספים
+                    </a>
+                  )}
+                  {item.copiesUrl && (
+                    <a href={item.copiesUrl} target="_blank" rel="noreferrer noopener">
+                      בדיקת עותקים
+                    </a>
+                  )}
+                </div>
+              </div>
+
+              <div className="coverWrap" aria-hidden="true">
+                {item.coverUrl ? (
+                  <img src={item.coverUrl} alt="" className="coverImage" loading="lazy" />
+                ) : (
+                  <div className="coverFallback">אין תמונה</div>
+                )}
+              </div>
             </div>
           </article>
         ))}
