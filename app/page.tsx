@@ -120,13 +120,13 @@ export default function HomePage() {
             <div className="cardLayout">
               <div className="cardText">
                 <h2>{item.title}</h2>
-                <ul>
-                  {item.author && <li>מחבר/ת: {item.author}</li>}
-                  {item.year && <li>שנת הוצאה: {item.year}</li>}
-                  {item.shelfMark && <li>מיקום מדף: {item.shelfMark}</li>}
-                  {item.classification && <li>סיווג: {item.classification}</li>}
-                  {item.seriesNumber && <li>מס׳ בסדרה: {item.seriesNumber}</li>}
-                </ul>
+                <div className="metaGrid">
+                  {item.author && <div className="metaItem"><span>מחבר/ת</span><strong>{item.author}</strong></div>}
+                  {item.year && <div className="metaItem"><span>שנת הוצאה</span><strong>{item.year}</strong></div>}
+                  {item.shelfMark && <div className="metaItem"><span>מיקום מדף</span><strong>{item.shelfMark}</strong></div>}
+                  {item.classification && <div className="metaItem"><span>סיווג</span><strong>{item.classification}</strong></div>}
+                  {item.seriesNumber && <div className="metaItem"><span>מס׳ בסדרה</span><strong>{item.seriesNumber}</strong></div>}
+                </div>
                 <div className="actions">
                   {item.detailsUrl && (
                     getTitleId(item.detailsUrl) ? (
@@ -154,11 +154,11 @@ export default function HomePage() {
                 {expanded[`${item.title}-${idx}`] && (
                   <div className="detailsPanel">
                     <h3>{expanded[`${item.title}-${idx}`].mode === "copies" ? "פרטי עותקים" : "פרטי רשומה"}</h3>
-                    <ul>
+                    <div className="detailsBlocks">
                       {expanded[`${item.title}-${idx}`].lines.map((line, i) => (
-                        <li key={`${i}-${line}`}>{line}</li>
+                        <div className="detailsLine" key={`${i}-${line}`}>{line}</div>
                       ))}
-                    </ul>
+                    </div>
                   </div>
                 )}
               </div>

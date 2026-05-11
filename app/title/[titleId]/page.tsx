@@ -41,9 +41,14 @@ export default function TitleDetailsPage({ params }: { params: { titleId: string
             <h1>{data.title}</h1>
             <div className="detailsPanel">
               <h3>פרטי כותר</h3>
-              <ul>
-                {data.fields.map((f, i) => <li key={`${f.label}-${i}`}><strong>{f.label}:</strong> {f.value}</li>)}
-              </ul>
+              <div className="metaGrid">
+                {data.fields.map((f, i) => (
+                  <div className="metaItem" key={`${f.label}-${i}`}>
+                    <span>{f.label}</span>
+                    <strong>{f.value}</strong>
+                  </div>
+                ))}
+              </div>
             </div>
             {data.description && (
               <div className="detailsPanel">
@@ -54,7 +59,7 @@ export default function TitleDetailsPage({ params }: { params: { titleId: string
             {data.copies.length > 0 && (
               <div className="detailsPanel">
                 <h3>פרטי עותקים</h3>
-                <ul>{data.copies.map((c, i) => <li key={`${i}-${c}`}>{c}</li>)}</ul>
+                <div className="detailsBlocks">{data.copies.map((c, i) => <div className="detailsLine" key={`${i}-${c}`}>{c}</div>)}</div>
               </div>
             )}
             <p><a href={data.detailsUrl} target="_blank" rel="noreferrer noopener">צפייה בעמוד המקורי</a></p>
