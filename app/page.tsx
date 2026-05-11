@@ -2,6 +2,7 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import type { CatalogResult, SearchColumn } from "../lib/agron";
 
 type SearchResponse =
@@ -62,6 +63,16 @@ export default function HomePage() {
     }
   };
 
+  const getTitleId = (url?: string): string | null => {
+    if (!url) return null;
+    try {
+      const u = new URL(url);
+      return u.searchParams.get("titleId");
+    } catch {
+      return null;
+    }
+  };
+
   return (
     <main className="container">
       <section className="hero">
@@ -118,13 +129,17 @@ export default function HomePage() {
                 </ul>
                 <div className="actions">
                   {item.detailsUrl && (
-                    <button
-                      type="button"
-                      onClick={() => openPanel(`${item.title}-${idx}`, item.detailsUrl!, "details")}
-                      disabled={panelLoading === `${item.title}-${idx}-details`}
-                    >
-                      פרטים נוספים
-                    </button>
+                    getTitleId(item.detailsUrl) ? (
+                      <Link href={`/title/${getTitleId(item.detailsUrl)}`}>פרטים נוספים</Link>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => openPanel(`${item.title}-${idx}`, item.detailsUrl!, "details")}
+                        disabled={panelLoading === `${item.title}-${idx}-details`}
+                      >
+                        פרטים נוספים
+                      </button>
+                    )
                   )}
                   {item.copiesUrl && (
                     <button
