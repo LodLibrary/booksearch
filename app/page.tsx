@@ -98,6 +98,7 @@ export default function HomePage() {
                   {item.year && <li>שנת הוצאה: {item.year}</li>}
                   {item.shelfMark && <li>מיקום מדף: {item.shelfMark}</li>}
                   {item.classification && <li>סיווג: {item.classification}</li>}
+                  {item.seriesNumber && <li>מס' בסדרה: {item.seriesNumber}</li>}
                 </ul>
                 <div className="actions">
                   {item.detailsUrl && (

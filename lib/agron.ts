@@ -8,11 +8,19 @@ export type CatalogResult = {
   year?: string;
   shelfMark?: string;
   classification?: string;
+  seriesNumber?: string;
   detailsUrl?: string;
   copiesUrl?: string;
   coverUrl?: string;
   rawText?: string;
 };
+
+function cleanFieldValue(value?: string): string | undefined {
+  if (!value) return undefined;
+  const normalized = value.replace(/\s+/g, " ").trim();
+  if (!normalized) return undefined;
+  return normalized;
+}
 
 const AGRON_SEARCH_URL =
   "https://lod.library.org.il/index.php?option=com_agronsearch&view=results&Itemid=72";
@@ -142,17 +150,19 @@ function parseResultCards(html: string): CatalogResult[] {
         rowEl.find("a").filter((_, a) => /עותקים|copies/i.test($(a).text())).first().attr("href");
 
       const rawText = rowEl.find(".title-details").text().replace(/\s+/g, " ").trim();
-      const authorMatch = rawText.match(/(?:מחברים?|Author(?:s)?)\s*[:\-]?\s*([^|,.;]{2,90})/i);
+      const authorMatch = rawText.match(/(?:מחברים?|Author(?:s)?)\s*[:\-]?\s*(.+?)(?=\s*(?:שנת הוצאה|מס'?\s*מיון|סימן מדף|מס'?\s*בסדרה|$))/i);
       const yearMatch = rawText.match(/(?:19|20)\d{2}/);
-      const shelfMatch = rawText.match(/(?:סימן מדף|מדף|מיקום|Shelf(?:\s*Mark)?)\s*[:\-]?\s*([^|,.;]{1,70})/i);
-      const classMatch = rawText.match(/(?:מס[']?\s*מיון|סיווג|Classification)\s*[:\-]?\s*([^|,.;]{1,70})/i);
+      const shelfMatch = rawText.match(/(?:סימן מדף|מדף|מיקום(?:\s*מדף)?|Shelf(?:\s*Mark)?)\s*[:\-]?\s*(.+?)(?=\s*(?:מס'?\s*בסדרה|מס'?\s*מיון|סיווג|שנת הוצאה|$))/i);
+      const classMatch = rawText.match(/(?:מס[']?\s*מיון|סיווג|Classification)\s*[:\-]?\s*(.+?)(?=\s*(?:סימן מדף|מס'?\s*בסדרה|שנת הוצאה|$))/i);
+      const seriesMatch = rawText.match(/(?:מס[']?\s*בסדרה)\s*[:\-]?\s*(\d{1,4})/i);
 
       results.push({
         title,
-        author: authorMatch?.[1]?.trim(),
+        author: cleanFieldValue(authorMatch?.[1]),
         year: yearMatch?.[0],
-        shelfMark: shelfMatch?.[1]?.trim(),
-        classification: classMatch?.[1]?.trim(),
+        shelfMark: cleanFieldValue(shelfMatch?.[1]),
+        classification: cleanFieldValue(classMatch?.[1]),
+        seriesNumber: cleanFieldValue(seriesMatch?.[1]),
         detailsUrl: toAbsoluteUrl(detailsHref),
         copiesUrl: toAbsoluteUrl(copiesHref),
         coverUrl: normalizeImageUrl(frontImageHref),
@@ -217,17 +227,19 @@ function parseResultCards(html: string): CatalogResult[] {
       recordLinks.find((a) => /עותקים|copies|copy|השאלה/i.test(a.text()) || /copy|loan|holding/i.test(a.attr("href") || ""))
         ?.attr("href") || undefined;
 
-    const authorMatch = rawText.match(/(?:מחבר|Author)\s*[:\-]?\s*([^|,.;]{2,90})/i);
+    const authorMatch = rawText.match(/(?:מחבר|Author)\s*[:\-]?\s*(.+?)(?=\s*(?:שנת הוצאה|מס'?\s*מיון|סימן מדף|מס'?\s*בסדרה|$))/i);
     const yearMatch = rawText.match(/(?:19|20)\d{2}/);
-    const shelfMatch = rawText.match(/(?:מדף|מיקום|Shelf(?:\s*Mark)?)\s*[:\-]?\s*([^|,.;]{1,70})/i);
-    const classMatch = rawText.match(/(?:סיווג|Classification)\s*[:\-]?\s*([^|,.;]{1,70})/i);
+    const shelfMatch = rawText.match(/(?:סימן מדף|מדף|מיקום(?:\s*מדף)?|Shelf(?:\s*Mark)?)\s*[:\-]?\s*(.+?)(?=\s*(?:מס'?\s*בסדרה|מס'?\s*מיון|סיווג|שנת הוצאה|$))/i);
+    const classMatch = rawText.match(/(?:מס[']?\s*מיון|סיווג|Classification)\s*[:\-]?\s*(.+?)(?=\s*(?:סימן מדף|מס'?\s*בסדרה|שנת הוצאה|$))/i);
+    const seriesMatch = rawText.match(/(?:מס[']?\s*בסדרה)\s*[:\-]?\s*(\d{1,4})/i);
 
     results.push({
       title,
-      author: authorMatch?.[1]?.trim(),
+      author: cleanFieldValue(authorMatch?.[1]),
       year: yearMatch?.[0],
-      shelfMark: shelfMatch?.[1]?.trim(),
-      classification: classMatch?.[1]?.trim(),
+      shelfMark: cleanFieldValue(shelfMatch?.[1]),
+      classification: cleanFieldValue(classMatch?.[1]),
+      seriesNumber: cleanFieldValue(seriesMatch?.[1]),
       detailsUrl: toAbsoluteUrl(detailsHref),
       copiesUrl: toAbsoluteUrl(copiesHref),
       coverUrl: normalizeImageUrl(imageSrc),
