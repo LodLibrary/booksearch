@@ -29,7 +29,7 @@ function toAbsoluteUrl(href?: string): string | undefined {
 
 function normalizeImageUrl(src?: string): string | undefined {
   if (!src) return undefined;
-  const cleaned = src.replace(/\s+/g, "").trim();
+  const cleaned = src.replace(/[\r\n\t ]+/g, "").trim();
   if (!cleaned) return undefined;
 
   try {
@@ -44,6 +44,10 @@ function normalizeImageUrl(src?: string): string | undefined {
 
     return parsed.toString();
   } catch {
+    // Agron image URLs may include non-URL-safe characters (like "{") inside query params.
+    // In that case keep a sanitized absolute/http URL instead of dropping the image.
+    if (cleaned.startsWith("http://") || cleaned.startsWith("https://")) return cleaned;
+    if (cleaned.startsWith("/")) return `${AGRON_BASE_URL}${cleaned}`;
     return undefined;
   }
 }
@@ -153,8 +157,14 @@ function parseResultCards(html: string): CatalogResult[] {
       .trim();
 
     const detailsHref = titleLink.attr("href") || recordLinks[0].attr("href");
-    const imageSrc =
-      rowEl.find('img[id^="image"]').first().attr("src") || rowEl.find("img").first().attr("src");
+    const frontAnchor =
+      rowEl.find('a.thumbnail:not(.col_last) img[id^="image"]:not([id$="-b"])').first().closest("a") ||
+      rowEl.find('a.thumbnail img[id="image0"]').first().closest("a");
+    const frontImg =
+      rowEl.find('img[id="image0"]').first().attr("src") ||
+      rowEl.find('a.thumbnail:not(.col_last) img:not([id$="-b"])').first().attr("src") ||
+      rowEl.find('img[id^="image"]:not([id$="-b"])').first().attr("src");
+    const imageSrc = frontImg || frontAnchor.attr("href") || rowEl.find("img").first().attr("src");
     const copiesHref =
       recordLinks.find((a) => /עותקים|copies|copy|השאלה/i.test(a.text()) || /copy|loan|holding/i.test(a.attr("href") || ""))
         ?.attr("href") || undefined;
