@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
-import type { CatalogResult, SearchColumn } from "@/lib/agron";
+import type { CatalogResult, SearchColumn } from "../lib/agron";
 
 type SearchResponse =
   | { results: CatalogResult[]; error?: never }

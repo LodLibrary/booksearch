@@ -2,7 +2,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
-import { searchCatalog, type SearchColumn } from "@/lib/agron";
+import { searchCatalog, type SearchColumn } from "../../../lib/agron";
 
 const VALID_COLUMNS = new Set(["0", "1", "2"]);
 
