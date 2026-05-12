@@ -62,7 +62,7 @@ export default function HomePage() {
 
         <section className="heroSearch" aria-label="חיפוש">
           <h1>חיפוש בקטלוג הספרייה</h1>
-          <p className="helper">הקלידו ביטוי, בחרו סוג חיפוש ולחצו לחיפוש מיידי.</p>
+          <p className="helper">ברוכים הבאים. הקלידו ביטוי, בחרו סוג חיפוש ולחצו כדי להתחיל.</p>
 
           <form className="searchForm" onSubmit={onSubmit} aria-label="טופס חיפוש">
             <label htmlFor="query" className="srOnly">
@@ -86,7 +86,7 @@ export default function HomePage() {
             </select>
 
             <button type="submit" disabled={!canSearch || loading}>
-              {loading ? "מחפש..." : "חיפוש"}
+              {loading ? "מחפש..." : "התחלת חיפוש"}
             </button>
           </form>
 
