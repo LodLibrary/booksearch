@@ -1,135 +1,138 @@
+@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap');
+
 :root {
   color-scheme: light;
+  --blue: #2956aa;
+  --white: #ffffff;
+  --ink: #102446;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
-  font-family: "Arial", "Heebo", sans-serif;
-  background: #f5f7fb;
-  color: #1c1f25;
+  font-family: 'Assistant', sans-serif;
+  background: var(--blue);
+  color: var(--white);
 }
 
-.container {
-  max-width: 920px;
-  margin: 0 auto;
-  padding: 2rem 1rem 4rem;
+.kioskShell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1.2rem;
 }
 
-.hero h1 {
-  font-size: clamp(1.8rem, 4vw, 2.8rem);
-  margin-bottom: 1.2rem;
-  text-align: center;
+.kioskFrame {
+  width: min(1500px, 100%);
+  aspect-ratio: 16 / 9;
+  background: var(--blue);
+  border: 4px solid var(--white);
+  padding: 1.4rem;
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  gap: 1rem;
 }
+
+.masthead {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 3px solid var(--white);
+  padding-bottom: 0.6rem;
+  font-size: 1.1rem;
+}
+
+.heroSearch h1 { font-size: clamp(2.1rem, 4vw, 4rem); margin: 0; }
+.helper { font-size: 1.1rem; margin: 0.4rem 0 0.9rem; }
 
 .searchForm {
   display: grid;
-  grid-template-columns: 1fr auto auto;
-  gap: 0.7rem;
-  background: #fff;
-  padding: 1rem;
-  border-radius: 16px;
-  box-shadow: 0 8px 30px rgba(8, 29, 65, 0.07);
+  grid-template-columns: 1fr 210px 210px;
+  gap: 0;
+  border: 4px solid var(--white);
 }
 
 .searchForm input,
 .searchForm select,
 .searchForm button,
-.actions a {
-  border-radius: 10px;
-  border: 1px solid #d2dae6;
-  font-size: 1rem;
-  min-height: 44px;
-}
-
-.searchForm input,
-.searchForm select {
-  padding: 0 0.8rem;
-  background: #fff;
-}
-
-.searchForm button {
-  border: none;
-  background: #1f6feb;
-  color: #fff;
-  padding: 0 1.1rem;
-  cursor: pointer;
-}
-
-.searchForm button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.assistive {
-  min-height: 2rem;
-  padding: 0.5rem;
-}
-
-.error {
-  color: #be2d2d;
-}
-
-.results {
-  margin-top: 1.5rem;
-  display: grid;
-  gap: 1rem;
-}
-
-.card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 1rem;
-  box-shadow: 0 5px 18px rgba(8, 29, 65, 0.06);
-}
-
-.card h2 {
-  margin-top: 0;
-  margin-bottom: 0.6rem;
-  font-size: 1.2rem;
-}
-
-.card ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: 0.35rem;
-}
-
-.actions {
-  margin-top: 0.9rem;
-  display: flex;
-  gap: 0.6rem;
-  flex-wrap: wrap;
-}
-
-.actions a {
-  display: inline-flex;
-  align-items: center;
-  text-decoration: none;
-  padding: 0 0.9rem;
-  color: #1f6feb;
-  background: #eef4ff;
-  border-color: #d7e5ff;
-}
-
-.srOnly {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
+.rowActions button,
+.rowActions a,
+.ghostBtn,
+.inlineAction {
   border: 0;
+  border-left: 3px solid var(--blue);
+  min-height: 86px;
+  font-family: inherit;
+  font-size: 1.4rem;
 }
 
-@media (max-width: 720px) {
-  .searchForm {
-    grid-template-columns: 1fr;
-  }
+.searchForm input {
+  background: var(--white);
+  color: var(--ink);
+  padding: 0 1.1rem;
+  font-size: 1.8rem;
+}
+
+.searchForm select,
+.searchForm button {
+  background: #163d81;
+  color: var(--white);
+  font-weight: 800;
+}
+
+.searchForm button { cursor: pointer; background: #0a3275; }
+.searchForm button:disabled { opacity: .45; cursor: not-allowed; }
+.searchForm input:focus,
+.searchForm select:focus,
+.searchForm button:focus,
+.rowActions button:focus,
+.rowActions a:focus,
+.ghostBtn:focus,
+.inlineAction:focus { outline: 4px solid #ffe45a; outline-offset: -4px; }
+
+.searchForm button:hover,.rowActions button:hover,.rowActions a:hover,.ghostBtn:hover,.inlineAction:hover { background:#0d2f68; }
+.searchForm button:active,.rowActions button:active,.rowActions a:active { transform: translateY(2px); }
+
+.resultsZone, .detailsZone {
+  background: var(--white);
+  color: var(--ink);
+  border: 4px solid var(--white);
+  padding: 1rem;
+  overflow: auto;
+}
+
+.zoneHeader { display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid var(--blue); padding-bottom:.6rem; margin-bottom:.8rem; }
+.zoneHeader h2 { margin: 0; font-size: 2rem; }
+.ghostBtn { background: var(--blue); color: var(--white); padding: 0 1rem; cursor:pointer; }
+
+.resultsTable { display:grid; gap:.7rem; }
+.resultRow { display:grid; grid-template-columns: 120px 1fr 240px; gap: 1rem; border: 3px solid var(--blue); padding: .7rem; align-items: stretch; }
+.cover, .coverLarge { background: var(--blue); color: var(--white); display:grid; place-items:center; font-weight:700; }
+.bookCore h3 { margin:0 0 .4rem; font-size:1.6rem; }
+.metaGrid { display:grid; grid-template-columns: 1fr 1fr; gap:.35rem 1rem; font-size:1.08rem; }
+.metaGrid p { margin: 0; }
+.rowActions { display:grid; gap:.45rem; }
+.rowActions button, .rowActions a { background: var(--blue); color: var(--white); text-decoration:none; display:grid; place-items:center; cursor:pointer; }
+
+.detailsLayout { display:grid; grid-template-columns: 280px 1fr 1fr; gap: .8rem; }
+.coverLarge { min-height: 250px; grid-row: span 2; font-size:1.6rem; }
+.detailBlock { border: 3px solid var(--blue); padding:.8rem; }
+.detailBlock h3 { margin:0 0 .45rem; font-size:1.35rem; color:var(--blue); }
+.bigTitle { margin:0; font-size:1.8rem; font-weight:800; }
+.kv { display:flex; justify-content:space-between; border-top:1px solid #b8c8e8; padding:.4rem 0; }
+.inlineAction { display:inline-grid; place-items:center; background:var(--blue); color:var(--white); padding:0 1rem; min-height:58px; text-decoration:none; margin-top:.4rem; }
+
+.assistive { min-height: 1.8rem; }
+.error { color: #ffe45a; font-weight:700; }
+.empty { font-size:1.2rem; font-weight:700; }
+
+.srOnly { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0; }
+
+@media (max-width: 1150px) {
+  .kioskFrame { aspect-ratio: auto; }
+  .searchForm { grid-template-columns: 1fr; }
+  .searchForm input,.searchForm select,.searchForm button { border-left:0; border-top:3px solid var(--blue); }
+  .resultRow { grid-template-columns: 1fr; }
+  .detailsLayout { grid-template-columns: 1fr; }
+  .coverLarge { grid-row: auto; }
 }
