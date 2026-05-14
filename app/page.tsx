@@ -110,15 +110,15 @@ export default function HomePage() {
               {results.map((item, idx) => (
                 <article key={`${item.title}-${idx}`} className="resultRow" role="listitem">
                   <div className="cover" aria-hidden>
-                    <span>כריכה</span>
+                    {item.coverImageUrl ? <img src={item.coverImageUrl} alt="" /> : <span>כריכה</span>}
                   </div>
                   <div className="bookCore">
                     <h3>{item.title}</h3>
                     <div className="metaGrid">
-                      <p><strong>מחבר/ת:</strong> {item.author || "לא צוין"}</p>
-                      <p><strong>שנה:</strong> {item.year || "לא צוין"}</p>
-                      <p><strong>מיקום:</strong> {item.shelfMark || "לא צוין"}</p>
-                      <p><strong>סיווג:</strong> {item.classification || "לא צוין"}</p>
+                      <p className="pill"><strong>מחבר/ת:</strong> {item.author || "לא צוין"}</p>
+                      <p className="pill"><strong>שנה:</strong> {item.year || "לא צוין"}</p>
+                      <p className="pill"><strong>מיקום:</strong> {item.shelfMark || "לא צוין"}</p>
+                      <p className="pill"><strong>סיווג:</strong> {item.classification || "לא צוין"}</p>
                     </div>
                   </div>
                   <div className="rowActions">
