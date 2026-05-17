@@ -25,7 +25,8 @@ export type TitleDetails = {
   publicationYear?: string;
 };
 
-const AGRON_COMPLEX_RESULTS_URL = "https://lod.library.org.il/agron-catalog/search-complex-menu?task=results";
+const AGRON_COMPLEX_SEARCH_URL = "https://lod.library.org.il/agron-catalog/search-complex-menu";
+const AGRON_COMPLEX_RESULTS_URL = `${AGRON_COMPLEX_SEARCH_URL}?task=results`;
 const AGRON_BASE_URL = "https://lod.library.org.il";
 
 function toAbsoluteUrl(href?: string): string | undefined {
@@ -37,16 +38,35 @@ function toAbsoluteUrl(href?: string): string | undefined {
   }
 }
 
-function buildComplexFormData(query: string, column: SearchColumn): URLSearchParams {
+function buildComplexFormData(query: string, column: SearchColumn, tokenName?: string): URLSearchParams {
   const body = new URLSearchParams();
   body.set("column0", column);
   body.set("exprStr0", query);
-  body.set("matchBy0", "1");
+  body.set("matchBy0", "0");
   body.set("cond0", "AND");
-  body.set("column1", "");
+  body.set("column1", "0");
   body.set("exprStr1", "");
+  body.set("matchBy1", "0");
+  body.set("cond1", "AND");
+  body.set("column2", "0");
+  body.set("exprStr2", "");
+  body.set("matchBy2", "0");
+  body.set("orderBy", "0");
   body.set("newSearch", "1");
+  if (tokenName) body.set(tokenName, "1");
   return body;
+}
+
+
+async function getComplexSearchToken(): Promise<string | undefined> {
+  const res = await fetch(AGRON_COMPLEX_SEARCH_URL, { cache: "no-store" });
+  if (!res.ok) return undefined;
+  const html = await res.text();
+  const $ = cheerio.load(html);
+  return $("#searchTitle input[type='hidden'][value='1']")
+    .toArray()
+    .map((el) => $(el).attr("name") || "")
+    .find((name) => /^[a-f0-9]{24,}$/i.test(name));
 }
 
 function parseComplexResults(html: string): CatalogResult[] {
@@ -103,10 +123,11 @@ function parseCopies(html: string): CopyItem[] {
 }
 
 export async function searchCatalog(query: string, column: SearchColumn): Promise<CatalogResult[]> {
+  const tokenName = await getComplexSearchToken();
   const res = await fetch(AGRON_COMPLEX_RESULTS_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: buildComplexFormData(query, column),
+    body: buildComplexFormData(query, column, tokenName),
     cache: "no-store",
   });
 
