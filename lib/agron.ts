@@ -19,6 +19,12 @@ export type CopyItem = {
   status: string;
 };
 
+export type TitleDetails = {
+  description?: string;
+  publisher?: string;
+  publicationYear?: string;
+};
+
 const AGRON_COMPLEX_RESULTS_URL = "https://lod.library.org.il/agron-catalog/search-complex-menu?task=results";
 const AGRON_BASE_URL = "https://lod.library.org.il";
 
@@ -109,9 +115,35 @@ export async function searchCatalog(query: string, column: SearchColumn): Promis
   return parseComplexResults(html);
 }
 
-export async function getCopiesForTitle(input: { detailsUrl?: string; copiesUrl?: string }): Promise<{ copies: CopyItem[]; total: number; available: number }> {
+function parseTitleDetails(html: string): TitleDetails {
+  const $ = cheerio.load(html);
+  const byMeta = [
+    "#description",
+    ".description",
+    ".title-details .well",
+    "article .well",
+    ".item-page .well"
+  ];
+  let description = "";
+  for (const sel of byMeta) {
+    const text = $(sel).first().text().replace(/\s+/g, " " ).trim();
+    if (text && text.length > 30) { description = text; break; }
+  }
+  if (!description) {
+    const allText = $("#copies").parent().text().replace(/\s+/g, " " ).trim();
+    const m = allText.match(/(?:תקציר|תיאור)\s*[:\-]?\s*(.{30,500})/);
+    description = m?.[1]?.trim() || "";
+  }
+
+  const full = $("body").text().replace(/\s+/g, " " );
+  const publisher = full.match(/(?:הוצאה|Publisher)\s*[:\-]?\s*([^|,.]{2,80})/)?.[1]?.trim();
+  const publicationYear = full.match(/(?:19|20)\d{2}/)?.[0];
+  return { description: description || undefined, publisher, publicationYear };
+}
+
+export async function getCopiesForTitle(input: { detailsUrl?: string; copiesUrl?: string }): Promise<{ copies: CopyItem[]; total: number; available: number; details: TitleDetails }> {
   const target = input.copiesUrl || input.detailsUrl;
-  if (!target) return { copies: [], total: 0, available: 0 };
+  if (!target) return { copies: [], total: 0, available: 0, details: {} };
 
   const res = await fetch(target, { cache: "no-store" });
   if (!res.ok) throw new Error(`Copies request failed with ${res.status}`);
@@ -119,5 +151,16 @@ export async function getCopiesForTitle(input: { detailsUrl?: string; copiesUrl?
   const html = await res.text();
   const copies = parseCopies(html);
   const available = copies.filter((c) => /זמין|פנוי|available|on shelf/i.test(c.status)).length;
-  return { copies, total: copies.length, available };
+
+  let details = parseTitleDetails(html);
+  if ((!details.description || !details.publisher) && input.detailsUrl && input.detailsUrl !== target) {
+    try {
+      const detailsRes = await fetch(input.detailsUrl, { cache: "no-store" });
+      if (detailsRes.ok) {
+        details = { ...details, ...parseTitleDetails(await detailsRes.text()) };
+      }
+    } catch {}
+  }
+
+  return { copies, total: copies.length, available, details };
 }

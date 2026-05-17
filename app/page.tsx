@@ -1,14 +1,14 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
-import type { CatalogResult, CopyItem, SearchColumn } from "@/lib/agron";
+import type { CatalogResult, CopyItem, SearchColumn, TitleDetails } from "@/lib/agron";
 
 type SearchResponse =
   | { results: CatalogResult[]; error?: never }
   | { results?: never; error: string };
 
 type CopiesResponse =
-  | { copies: CopyItem[]; total: number; available: number; error?: never }
+  | { copies: CopyItem[]; total: number; available: number; details: TitleDetails; error?: never }
   | { copies?: never; total?: never; available?: never; error: string };
 
 type ViewMode = "home" | "results" | "details";
@@ -26,11 +26,13 @@ export default function HomePage() {
   const [copiesTotal, setCopiesTotal] = useState(0);
   const [copiesAvailable, setCopiesAvailable] = useState(0);
   const [copiesLoading, setCopiesLoading] = useState(false);
+  const [bookDetails, setBookDetails] = useState<TitleDetails>({});
 
   const canSearch = useMemo(() => query.trim().length >= 2, [query]);
 
   const loadCopies = async (item: CatalogResult) => {
     setCopiesLoading(true);
+    setBookDetails({});
     setCopies([]);
     setCopiesTotal(0);
     setCopiesAvailable(0);
@@ -43,6 +45,7 @@ export default function HomePage() {
       setCopies(data.copies);
       setCopiesTotal(data.total);
       setCopiesAvailable(data.available);
+      setBookDetails(data.details || {});
     } finally {
       setCopiesLoading(false);
     }
@@ -136,8 +139,9 @@ export default function HomePage() {
             <div className="detailsLayout">
               <aside className="coverLarge">{selectedBook.coverImageUrl ? <img src={selectedBook.coverImageUrl} alt="" /> : "כריכה"}</aside>
               <section className="detailBlock"><h3>פרטי הספר</h3><p className="bigTitle">{selectedBook.title}</p></section>
-              <section className="detailBlock"><h3>מחבר/ת ופרסום</h3><div className="kv"><span>מחבר/ת</span><strong>{selectedBook.author || "לא צוין"}</strong></div><div className="kv"><span>שנת הוצאה</span><strong>{selectedBook.year || "לא צוין"}</strong></div></section>
+              <section className="detailBlock"><h3>מחבר/ת ופרסום</h3><div className="kv"><span>מחבר/ת</span><strong>{selectedBook.author || "לא צוין"}</strong></div><div className="kv"><span>שנת הוצאה</span><strong>{bookDetails.publicationYear || selectedBook.year || "לא צוין"}</strong></div><div className="kv"><span>הוצאה</span><strong>{bookDetails.publisher || "לא צוין"}</strong></div></section>
               <section className="detailBlock"><h3>מיקום בספרייה</h3><div className="kv"><span>מיקום מדף</span><strong>{selectedBook.shelfMark || "לא צוין"}</strong></div><div className="kv"><span>סיווג</span><strong>{selectedBook.classification || "לא צוין"}</strong></div></section>
+              <section className="detailBlock"><h3>תיאור</h3><p>{bookDetails.description || "תיאור מלא לא זמין ברגע זה."}</p></section>
               <section className="detailBlock copyBlock"><h3>עותקים</h3>
                 <div className="copyStats"><span className="pill">סה״כ עותקים: {copiesTotal}</span><span className="pill">עותקים זמינים: {copiesAvailable}</span></div>
                 {copiesLoading && <p>טוען רשימת עותקים...</p>}
