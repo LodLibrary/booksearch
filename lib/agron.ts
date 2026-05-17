@@ -54,6 +54,19 @@ function buildComplexPayload(query: string, column: SearchColumn, token?: string
   return body;
 }
 
+
+function normalizeAuthorQuery(query: string): string {
+  const cleaned = query.replace(/\s+/g, " ").trim();
+  if (!cleaned || cleaned.includes(",")) return cleaned;
+
+  const parts = cleaned.split(" ").filter(Boolean);
+  if (parts.length < 2) return cleaned;
+
+  const firstName = parts[0];
+  const lastName = parts.slice(1).join(" ");
+  return `${lastName}, ${firstName}`;
+}
+
 function buildSimplePayload(query: string, column: SearchColumn) {
   const body = new URLSearchParams();
   body.set("column0", column);
@@ -98,12 +111,13 @@ async function postAndParse(url: string, body: URLSearchParams): Promise<Catalog
 }
 
 export async function searchCatalog(query: string, column: SearchColumn): Promise<CatalogResult[]> {
+  const normalizedQuery = column === "1" ? normalizeAuthorQuery(query) : query;
   const token = await getComplexToken();
-  let results = await postAndParse(COMPLEX_RESULTS_URL, buildComplexPayload(query, column, token));
+  let results = await postAndParse(COMPLEX_RESULTS_URL, buildComplexPayload(normalizedQuery, column, token));
 
   // fallback to older/simple endpoint if complex returns generic/default page
   if (results.length === 0 || results.every((r) => !r.rawText?.includes(query))) {
-    results = await postAndParse(SIMPLE_RESULTS_URL, buildSimplePayload(query, column));
+    results = await postAndParse(SIMPLE_RESULTS_URL, buildSimplePayload(normalizedQuery, column));
   }
 
   return results;
