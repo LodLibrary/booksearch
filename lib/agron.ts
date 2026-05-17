@@ -14,6 +14,11 @@ export type CatalogResult = {
   rawText?: string;
 };
 
+export type CopyItem = {
+  location: string;
+  status: string;
+};
+
 const AGRON_COMPLEX_RESULTS_URL = "https://lod.library.org.il/agron-catalog/search-complex-menu?task=results";
 const AGRON_BASE_URL = "https://lod.library.org.il";
 
@@ -74,6 +79,23 @@ function parseComplexResults(html: string): CatalogResult[] {
   return results.slice(0, 100);
 }
 
+function parseCopies(html: string): CopyItem[] {
+  const $ = cheerio.load(html);
+  const copies: CopyItem[] = [];
+
+  const rows = $("#copies").find("tr");
+  rows.each((_, tr) => {
+    const tds = $(tr).find("td");
+    if (tds.length < 2) return;
+    const location = $(tds[1]).text().replace(/\s+/g, " ").trim();
+    const status = $(tds[tds.length - 1]).text().replace(/\s+/g, " ").trim();
+    if (!location && !status) return;
+    copies.push({ location: location || "לא צוין", status: status || "לא צוין" });
+  });
+
+  return copies;
+}
+
 export async function searchCatalog(query: string, column: SearchColumn): Promise<CatalogResult[]> {
   const res = await fetch(AGRON_COMPLEX_RESULTS_URL, {
     method: "POST",
@@ -85,4 +107,17 @@ export async function searchCatalog(query: string, column: SearchColumn): Promis
   if (!res.ok) throw new Error(`Agron request failed with ${res.status}`);
   const html = await res.text();
   return parseComplexResults(html);
+}
+
+export async function getCopiesForTitle(input: { detailsUrl?: string; copiesUrl?: string }): Promise<{ copies: CopyItem[]; total: number; available: number }> {
+  const target = input.copiesUrl || input.detailsUrl;
+  if (!target) return { copies: [], total: 0, available: 0 };
+
+  const res = await fetch(target, { cache: "no-store" });
+  if (!res.ok) throw new Error(`Copies request failed with ${res.status}`);
+
+  const html = await res.text();
+  const copies = parseCopies(html);
+  const available = copies.filter((c) => /זמין|פנוי|available|on shelf/i.test(c.status)).length;
+  return { copies, total: copies.length, available };
 }
