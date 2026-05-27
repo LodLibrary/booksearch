@@ -23,7 +23,9 @@ const BASE_HOST = new URL(BASE).host;
 const COMPLEX_FORM_URL = `${BASE}/agron-catalog/search-complex-menu`;
 const COMPLEX_RESULTS_URL = `${COMPLEX_FORM_URL}?task=results`;
 const SIMPLE_RESULTS_URL = `${BASE}/index.php?option=com_agronsearch&view=results&Itemid=72`;
-const REQUEST_TIMEOUT_MS = 12000;
+const REQUEST_TIMEOUT_MS = 7000;
+const TOKEN_TTL_MS = 5 * 60 * 1000;
+let tokenCache: { token: string; expiresAt: number } | null = null;
 
 function abs(h?: string) {
   if (!h) return undefined;
@@ -38,7 +40,7 @@ function assertAllowedCatalogUrl(url: string): string {
   return parsed.toString();
 }
 
-async function fetchText(url: string, init?: RequestInit, retries = 1): Promise<string> {
+async function fetchText(url: string, init?: RequestInit, retries = 0): Promise<string> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
@@ -63,13 +65,19 @@ async function fetchText(url: string, init?: RequestInit, retries = 1): Promise<
   }
 }
 
-async function getComplexToken(): Promise<string | undefined> {
+async function getComplexToken(forceRefresh = false): Promise<string | undefined> {
+  const now = Date.now();
+  if (!forceRefresh && tokenCache && tokenCache.expiresAt > now) return tokenCache.token;
+
   const html = await fetchText(COMPLEX_FORM_URL);
   const $ = cheerio.load(html);
-  return $("#searchTitle input[type='hidden'][value='1']")
+  const token = $("#searchTitle input[type='hidden'][value='1']")
     .toArray()
     .map((e) => $(e).attr("name") || "")
     .find((n) => /^[a-f0-9]{24,}$/i.test(n));
+
+  if (token) tokenCache = { token, expiresAt: now + TOKEN_TTL_MS };
+  return token;
 }
 
 function buildComplexPayload(query: string, column: SearchColumn, token?: string) {
@@ -157,11 +165,20 @@ export async function searchCatalog(query: string, column: SearchColumn): Promis
   try {
     const token = await getComplexToken();
     results = await postAndParse(COMPLEX_RESULTS_URL, buildComplexPayload(normalizedQuery, column, token));
+
+    // Retry once with fresh token if first attempt likely failed auth/validation.
+    if (results.length === 0) {
+      const freshToken = await getComplexToken(true);
+      if (freshToken && freshToken !== token) {
+        results = await postAndParse(COMPLEX_RESULTS_URL, buildComplexPayload(normalizedQuery, column, freshToken));
+      }
+    }
   } catch {
     results = [];
   }
 
-  if (results.length === 0 || results.every((r) => !r.rawText?.includes(query))) {
+  // Fallback only when there are no parsed records, to avoid a guaranteed second request on valid responses.
+  if (results.length === 0) {
     results = await postAndParse(SIMPLE_RESULTS_URL, buildSimplePayload(normalizedQuery, column));
   }
 
